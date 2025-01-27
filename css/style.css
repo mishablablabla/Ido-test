@@ -772,6 +772,10 @@ form {
   font-size: 24px;
 }
 
+.senod__img__composition {
+  display: none;
+}
+
 /*  */
 
 /* media */
@@ -781,9 +785,17 @@ form {
     font-size: 14px;
   }
 
+  .header {
+    padding: 0;
+  }
+
   .action__options {
     display: flex;
     padding: 0 30px;
+  }
+
+  .modal__dialog {
+    margin: 40px 20px;
   }
 
   .circle {

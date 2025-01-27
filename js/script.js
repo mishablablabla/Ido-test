@@ -180,6 +180,7 @@ window.addEventListener("DOMContentLoaded", () => {
       burgerNav.classList.toggle("open");
       document.body.style.overflow = `hidden`;
       document.body.style.background = "#fff";
+      document.body.style.overflow = ``;
     });
   });
 });
