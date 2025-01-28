@@ -5,12 +5,15 @@ window.addEventListener("DOMContentLoaded", () => {
     modal = document.querySelector(".modal"),
     modalClose = document.querySelector(".modal__close"),
     listItems = document.querySelector(".grid"),
-    dbUrl =
-      "https://brandstestowy.smallhost.pl/api/random?pageNumber=3&pageSize=50", // w mailu był link do api  https://brandstestowy.smallhost.pl/api/random ale tam są tylko 20 itemów, w api który jest wykorzystany są 50 itemów
     modalText = document.querySelector(".modal__text-name"),
     modalId = document.querySelector(".modal__text-id"),
     modalToBuy = document.querySelector(".modal-form__to__buy"),
-    modalToBuyClose = document.querySelector(".modal-form__close");
+    modalToBuyClose = document.querySelector(".modal-form__close"),
+    currentItem = document.querySelector("#products-count");
+
+  let currentPage = 1,
+    totalPages = null,
+    pageSize = parseInt(currentItem.value);
 
   btn.forEach((item) => {
     item.addEventListener("click", async () => {
@@ -46,9 +49,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // get data
 
-  async function getData(url) {
+  async function getData(pageNumber, pageSize) {
+    const dbUrl = `https://brandstestowy.smallhost.pl/api/random?pageNumber=${pageNumber}&pageSize=${pageSize}`;
+
     try {
-      const response = await fetch(url);
+      const response = await fetch(dbUrl);
 
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
@@ -93,17 +98,19 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function loadTask(limit) {
+  async function loadTask() {
     const productsMessage = document.querySelector(".products__message");
 
     controlModal(productsMessage, "show", "hide");
-
-    listItems.innerHTML = "";
+    if (totalPages && currentPage > totalPages) return;
 
     try {
-      const data = await getData(dbUrl);
+      const data = await getData(currentPage, pageSize);
 
-      generateItems(data.data, limit);
+      totalPages = data.totalPage;
+      generateItems(data.data);
+
+      currentPage++;
     } catch (error) {
       console.error(error);
     } finally {
@@ -111,13 +118,29 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function generateItems(arr, limit = 5) {
-    const showArr = arr.slice(0, limit);
-
-    showArr.forEach((item) => {
+  function generateItems(items) {
+    items.forEach((item) => {
       new Cards(item.id, item.text).render();
     });
   }
+
+  function resetData() {
+    listItems.innerHTML = "";
+    currentPage = 1;
+    totalPages = null;
+    loadTask();
+  }
+
+  window.addEventListener("scroll", () => {
+    if (
+      window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 &&
+      (!totalPages || currentPage <= totalPages)
+    ) {
+      loadTask();
+    }
+  });
+
+  loadTask();
 
   // show current section in header
 
@@ -149,12 +172,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // current of items
 
-  const currentItem = document.querySelector("#products-count");
-
   currentItem.addEventListener("change", () => {
-    const currentItemValue = currentItem.value;
-    console.log(currentItemValue);
-    loadTask(currentItemValue);
+    pageSize = parseInt(currentItem.value);
+    resetData();
   });
 
   // burger menu
